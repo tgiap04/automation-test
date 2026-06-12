@@ -63,4 +63,34 @@ test.describe('AC-3: Bộ lọc đa tiêu chí trong danh mục', () => {
 
     await expectUrlContainsFilter(page, { group: 'brand', value: 'dell' });
   });
+
+  test('Filter thương hiệu không tồn tại — checkbox không tồn tại', async ({
+    page,
+  }) => {
+    await navigateToCategory(page, '/laptop');
+
+    // A nonexistent brand should NOT have a checkbox in the sidebar
+    const checkbox = page.locator(
+      '.section-sidebar-filter input[type="checkbox"][value="nonexistentbrandxyz"]',
+    );
+    const exists = await checkbox.isVisible().catch(() => false);
+    console.log(`\n  🔍 Nonexistent brand checkbox visible: ${exists}`);
+    expect(exists).toBe(false);
+  });
+
+  test('Chọn filter apple — URL phải chứa thuong-hieu, KHÔNG chứa dell', async ({
+    page,
+  }) => {
+    await navigateToCategory(page, '/laptop');
+
+    await selectFilterCheckbox(page, {
+      group: 'brand',
+      value: 'apple',
+    });
+    await logFilterResults(page, 'brand=apple');
+
+    const url = page.url();
+    expect(url).toContain('thuong-hieu=apple');
+    expect(url).not.toContain('thuong-hieu=dell');
+  });
 });

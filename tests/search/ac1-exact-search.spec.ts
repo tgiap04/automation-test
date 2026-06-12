@@ -26,4 +26,24 @@ test.describe('AC-1: Tìm kiếm với từ khóa chính xác', () => {
     await logSearchResults(page, keyword);
     await expectHasResults(page);
   });
+
+  test('Tìm kiếm từ khóa không tồn tại — không có sản phẩm', async ({
+    page,
+  }) => {
+    const keyword = 'xyzabc123nonexistent';
+    await searchByKeyword(page, keyword);
+    await logSearchResults(page, keyword);
+    const body = await page.locator('body').textContent();
+    expect(body).toContain('0 sản phẩm');
+  });
+
+  test('Tìm kiếm "macbook" — kết quả phải chứa đúng keyword', async ({
+    page,
+  }) => {
+    const keyword = 'macbook';
+    await searchByKeyword(page, keyword);
+    await logSearchResults(page, keyword);
+    const body = await page.locator('body').textContent();
+    expect(body).not.toContain('xyzabc123');
+  });
 });

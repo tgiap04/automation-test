@@ -83,4 +83,55 @@ test.describe('AC-5: Xem chi tiết sản phẩm và thêm vào giỏ hàng', ()
     console.log(`  💵 Total: ${total} (expected: ${expectedTotalStr})`);
     expect(parseVietnamPrice(total)).toBe(expectedTotal);
   });
+
+  test('Thêm sản phẩm vào giỏ — tổng tiền KHÔNG phải 0', async ({
+    page,
+  }) => {
+    await navigateToProduct(page, PRODUCT_URL);
+    await addToCart(page);
+
+    await navigateToCart(page);
+
+    const total = await getCartTotal(page);
+    console.log(`\n  💵 Total: ${total}`);
+    expect(total).not.toBe('0');
+    expect(total).not.toBe('');
+  });
+
+  test('Thêm sản phẩm vào giỏ — giá trong giỏ phải khớp giá sản phẩm', async ({
+    page,
+  }) => {
+    await navigateToProduct(page, PRODUCT_URL);
+    const priceOnDetail = await getProductPrice(page);
+    console.log(`\n  💰 Price on detail: ${priceOnDetail}`);
+
+    await addToCart(page);
+    await navigateToCart(page);
+
+    const subtotal = await getCartSubtotal(page);
+    console.log(`  💵 Subtotal in cart: ${subtotal}`);
+    expect(subtotal).toBe(priceOnDetail);
+  });
+
+  test('Thay đổi số lượng = 3 — tổng = 3 × đơn giá', async ({
+    page,
+  }) => {
+    await navigateToProduct(page, PRODUCT_URL);
+    await addToCart(page);
+
+    await navigateToCart(page);
+
+    const newQty = 3;
+    await setCartQuantity(page, newQty);
+
+    const qty = await getCartQuantity(page);
+    expect(qty).toBe(newQty);
+
+    const unitPrice = parseVietnamPrice(UNIT_PRICE);
+    const expectedTotal = unitPrice * newQty;
+
+    const total = await getCartTotal(page);
+    console.log(`\n  🔢 Qty: ${newQty}, Total: ${total}, Expected: ${expectedTotal}`);
+    expect(parseVietnamPrice(total)).toBe(expectedTotal);
+  });
 });
