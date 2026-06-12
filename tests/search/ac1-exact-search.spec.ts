@@ -5,26 +5,25 @@ import {
   logSearchResults,
   expectHasResults,
 } from '../../helpers/search-helper';
-import { SEARCH } from '../../tests/config/test-data';
 
 test.describe('AC-1: Tìm kiếm với từ khóa chính xác', () => {
   test.beforeEach(async ({ page }) => {
     await navigateToHome(page);
   });
 
-  test(`Tìm kiếm "${SEARCH.EXACT_1}" — hiển thị kết quả sản phẩm`, async ({
+  test('Tìm kiếm "macbook" — hiển thị kết quả sản phẩm', async ({
     page,
   }) => {
-    await searchByKeyword(page, SEARCH.EXACT_1);
-    await logSearchResults(page, SEARCH.EXACT_1);
+    const keyword = 'macbook';
+    await searchByKeyword(page, keyword);
+    await logSearchResults(page, keyword);
     await expectHasResults(page);
   });
 
-  test(`Tìm kiếm "${SEARCH.EXACT_2}" — hiển thị kết quả sản phẩm`, async ({
-    page,
-  }) => {
-    await searchByKeyword(page, SEARCH.EXACT_2);
-    await logSearchResults(page, SEARCH.EXACT_2);
+  test('Tìm kiếm "dell" — hiển thị kết quả sản phẩm', async ({ page }) => {
+    const keyword = 'dell';
+    await searchByKeyword(page, keyword);
+    await logSearchResults(page, keyword);
     await expectHasResults(page);
   });
 });

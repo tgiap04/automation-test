@@ -7,11 +7,10 @@ import {
   expectUrlContainsFilter,
   expectProductsDifferent,
 } from '../../helpers/filter-helper';
-import { FILTER, CATEGORY } from '../../tests/config/test-data';
 
 test.describe('AC-4: Cập nhật real-time qua Ajax (không reload trang)', () => {
   test.beforeEach(async ({ page }) => {
-    await navigateToCategory(page, CATEGORY.LAPTOP);
+    await navigateToCategory(page, '/laptop');
   });
 
   test('Chọn filter — không reload trang, sản phẩm cập nhật ngay', async ({
@@ -27,9 +26,9 @@ test.describe('AC-4: Cập nhật real-time qua Ajax (không reload trang)', () 
 
     await selectFilterCheckbox(page, {
       group: 'brand',
-      value: FILTER.BRAND_1,
+      value: 'apple',
     });
-    await logFilterResults(page, `brand=${FILTER.BRAND_1} (no-reload check)`);
+    await logFilterResults(page, 'brand=apple (no-reload check)');
 
     expect(pageReloaded).toBe(false);
     await expectProductsDifferent(page, initialTexts);
@@ -40,46 +39,46 @@ test.describe('AC-4: Cập nhật real-time qua Ajax (không reload trang)', () 
   }) => {
     await selectFilterCheckbox(page, {
       group: 'brand',
-      value: FILTER.BRAND_SECOND,
+      value: 'asus',
     });
-    await logFilterResults(page, `brand=${FILTER.BRAND_SECOND}`);
+    await logFilterResults(page, 'brand=asus');
     await expectUrlContainsFilter(page, {
       group: 'brand',
-      value: FILTER.BRAND_SECOND,
+      value: 'asus',
     });
 
     await selectFilterCheckbox(page, {
       group: 'nhu-cau',
-      value: FILTER.NHU_CAU_GAMING,
+      value: 'gaming',
     });
     await logFilterResults(
       page,
-      `brand=${FILTER.BRAND_SECOND} + nhu-cau=${FILTER.NHU_CAU_GAMING}`,
+      'brand=asus + nhu-cau=gaming',
     );
     await expectUrlContainsFilter(page, {
       group: 'brand',
-      value: FILTER.BRAND_SECOND,
+      value: 'asus',
     });
     await expectUrlContainsFilter(page, {
       group: 'nhu-cau',
-      value: FILTER.NHU_CAU_GAMING,
+      value: 'gaming',
     });
   });
 
   test('Bỏ chọn filter — URL thay đổi, sản phẩm cập nhật', async ({
     page,
   }) => {
-    await selectFilterCheckbox(page, { group: 'brand', value: FILTER.BRAND_HP });
-    await logFilterResults(page, `brand=${FILTER.BRAND_HP} (filtered)`);
+    await selectFilterCheckbox(page, { group: 'brand', value: 'hp' });
+    await logFilterResults(page, 'brand=hp (filtered)');
     await expectUrlContainsFilter(page, {
       group: 'brand',
-      value: FILTER.BRAND_HP,
+      value: 'hp',
     });
 
     const filteredTexts = await getProductTexts(page);
 
-    await selectFilterCheckbox(page, { group: 'brand', value: FILTER.BRAND_HP });
-    await logFilterResults(page, `brand=${FILTER.BRAND_HP} (toggled off)`);
+    await selectFilterCheckbox(page, { group: 'brand', value: 'hp' });
+    await logFilterResults(page, 'brand=hp (toggled off)');
 
     const unfilteredTexts = await getProductTexts(page);
     const hasDifference = unfilteredTexts.some(

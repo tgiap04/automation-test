@@ -6,20 +6,19 @@ import {
   logFilterResults,
   expectUrlContainsFilter,
 } from '../../helpers/filter-helper';
-import { FILTER, CATEGORY } from '../../tests/config/test-data';
 
 test.describe('AC-3: Bộ lọc đa tiêu chí trong danh mục', () => {
   test('Chọn 1 filter thương hiệu — sản phẩm phải khớp', async ({
     page,
   }) => {
-    await navigateToCategory(page, CATEGORY.LAPTOP);
+    await navigateToCategory(page, '/laptop');
     const countBefore = await getProductCount(page);
     console.log(
-      `\n  📂 Category: ${CATEGORY.LAPTOP} — ${countBefore} product(s) loaded`,
+      `\n  📂 Category: /laptop — ${countBefore} product(s) loaded`,
     );
 
-    await selectFilterCheckbox(page, { group: 'brand', value: FILTER.BRAND_1 });
-    await logFilterResults(page, `brand=${FILTER.BRAND_1}`);
+    await selectFilterCheckbox(page, { group: 'brand', value: 'apple' });
+    await logFilterResults(page, 'brand=apple');
 
     const countAfter = await getProductCount(page);
     expect(countAfter).toBeGreaterThan(0);
@@ -28,40 +27,40 @@ test.describe('AC-3: Bộ lọc đa tiêu chí trong danh mục', () => {
   test('Chọn nhiều filter đồng thời — URL chứa cả hai param', async ({
     page,
   }) => {
-    await navigateToCategory(page, CATEGORY.LAPTOP);
+    await navigateToCategory(page, '/laptop');
 
     await selectFilterCheckbox(page, {
       group: 'brand',
-      value: FILTER.BRAND_2,
+      value: 'dell',
     });
     await selectFilterCheckbox(page, {
       group: 'nhu-cau',
-      value: FILTER.NHU_CAU_VAN_PHONG,
+      value: 'van-phong',
     });
     await logFilterResults(
       page,
-      `brand=${FILTER.BRAND_2} + nhu-cau=${FILTER.NHU_CAU_VAN_PHONG}`,
+      'brand=dell + nhu-cau=van-phong',
     );
 
     await expectUrlContainsFilter(page, {
       group: 'brand',
-      value: FILTER.BRAND_2,
+      value: 'dell',
     });
     await expectUrlContainsFilter(page, {
       group: 'nhu-cau',
-      value: FILTER.NHU_CAU_VAN_PHONG,
+      value: 'van-phong',
     });
   });
 
   test('URL thay đổi đúng fragment khi chọn filter', async ({ page }) => {
-    await navigateToCategory(page, CATEGORY.LAPTOP);
+    await navigateToCategory(page, '/laptop');
 
     await selectFilterCheckbox(page, {
       group: 'brand',
-      value: FILTER.BRAND_2,
+      value: 'dell',
     });
-    await logFilterResults(page, `brand=${FILTER.BRAND_2}`);
+    await logFilterResults(page, 'brand=dell');
 
-    await expectUrlContainsFilter(page, { group: 'brand', value: FILTER.BRAND_2 });
+    await expectUrlContainsFilter(page, { group: 'brand', value: 'dell' });
   });
 });
