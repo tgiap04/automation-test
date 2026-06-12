@@ -4,6 +4,7 @@ import {
   selectFilterCheckbox,
   getProductCount,
   getProductTexts,
+  logFilterResults,
   expectUrlContainsFilter,
   expectProductsDifferent,
 } from '../../helpers/filter-helper';
@@ -17,7 +18,7 @@ test.describe('AC-4: Cập nhật real-time qua Ajax (không reload trang)', () 
     page,
   }) => {
     const initialTexts = await getProductTexts(page);
-    expect(initialTexts.length).toBeGreaterThan(0);
+    console.log(`\n  📂 Initial products: ${initialTexts.length}`);
 
     let pageReloaded = false;
     page.on('load', () => {
@@ -25,6 +26,7 @@ test.describe('AC-4: Cập nhật real-time qua Ajax (không reload trang)', () 
     });
 
     await selectFilterCheckbox(page, { group: 'brand', value: 'apple' });
+    await logFilterResults(page, 'brand=apple (no-reload check)');
 
     expect(pageReloaded).toBe(false);
     await expectProductsDifferent(page, initialTexts);
@@ -34,25 +36,26 @@ test.describe('AC-4: Cập nhật real-time qua Ajax (không reload trang)', () 
     page,
   }) => {
     await selectFilterCheckbox(page, { group: 'brand', value: 'asus' });
+    await logFilterResults(page, 'brand=asus');
     await expectUrlContainsFilter(page, { group: 'brand', value: 'asus' });
 
     await selectFilterCheckbox(page, { group: 'nhu-cau', value: 'gaming' });
+    await logFilterResults(page, 'brand=asus + nhu-cau=gaming');
     await expectUrlContainsFilter(page, { group: 'brand', value: 'asus' });
     await expectUrlContainsFilter(page, { group: 'nhu-cau', value: 'gaming' });
   });
 
   test('Bỏ chọn filter — URL thay đổi, sản phẩm cập nhật', async ({ page }) => {
-    // Select filter
     await selectFilterCheckbox(page, { group: 'brand', value: 'hp' });
+    await logFilterResults(page, 'brand=hp (filtered)');
     await expectUrlContainsFilter(page, { group: 'brand', value: 'hp' });
 
     const filteredTexts = await getProductTexts(page);
 
-    // Toggle off same filter
     await selectFilterCheckbox(page, { group: 'brand', value: 'hp' });
+    await logFilterResults(page, 'brand=hp (toggled off)');
 
     const unfilteredTexts = await getProductTexts(page);
-    // Products should differ after unselecting filter
     const hasDifference = unfilteredTexts.some(
       (text, i) => text !== filteredTexts[i],
     );

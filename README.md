@@ -77,6 +77,35 @@ npx playwright show-report
 ## Conventions
 
 - **Locators**: `getByPlaceholder` > `getByRole` > `getByText` — no hard XPath/CSS
-- **Waits**: Event-driven (`waitForLoadState`, `waitForResponse`) — no `waitForTimeout`
+- **Waits**: Event-driven (`waitForLoadState`, `waitForResponse`) — minimal `waitForTimeout`
+- **Modal Handling**: JS-based force removal (display:none + pointerEvents:none) for persistent overlays
 - **Parallel**: 4 workers by default, tests are isolated
 - **Browser**: Chromium headless, locale `vi-VN`, timezone `Asia/Ho_Chi_Minh`
+
+## Technical Notes
+
+### ThinkPro Modal Handling
+
+ThinkPro shows a persistent voucher popup on first visit that blocks all interactions. Our solution:
+
+```typescript
+// Force-remove modal via JS — Escape/close button don't fully remove it
+await page.evaluate(() => {
+  document.querySelectorAll('.t-dialog, [class*="dialog"]').forEach((el) => {
+    el.style.display = 'none';
+    el.style.visibility = 'hidden';
+    el.style.pointerEvents = 'none';
+    el.style.zIndex = '-9999';
+  });
+});
+
+// Use force:true for input interactions
+await input.fill(keyword, { force: true });
+await input.press('Enter');
+```
+
+### Search Behavior
+
+ThinkPro is a SPA — search doesn't navigate to a new URL. Results render inline on the same page (`/`). Our assertions check:
+- Product cards appear (`.t-product-card`)
+- At least one card text contains the search keyword

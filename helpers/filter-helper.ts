@@ -15,11 +15,14 @@ const FILTER_URL_MAP: Record<string, string> = {
 };
 
 async function dismissOverlays(page: Page) {
-  const overlay = page.locator('.t-dialog.z-50, .the-menu');
-  if (await overlay.first().isVisible().catch(() => false)) {
-    await page.keyboard.press('Escape');
-    await page.waitForTimeout(500);
-  }
+  // Remove modal overlay via JS — Escape/close button may not fully remove it
+  await page.evaluate(() => {
+    document.querySelectorAll('.t-dialog, [class*="dialog"]').forEach((el) => {
+      (el as HTMLElement).style.display = 'none';
+      (el as HTMLElement).style.pointerEvents = 'none';
+    });
+  });
+  await page.waitForTimeout(500);
 }
 
 export async function navigateToCategory(page: Page, path: string) {
@@ -35,8 +38,7 @@ export async function selectFilterCheckbox(page: Page, option: FilterOption) {
 
   await expect(checkbox).toBeVisible();
   await dismissOverlays(page);
-  await checkbox.click();
-  // Wait for network + Vue re-render
+  await checkbox.click({ force: true });
   await page.waitForLoadState('networkidle');
   await page.waitForTimeout(1000);
 }
@@ -66,11 +68,40 @@ export async function expectUrlContainsFilter(
   expect(url).toContain(`${urlKey}=${option.value}`);
 }
 
+export async function getProductNames(page: Page): Promise<string[]> {
+  const cards = page.locator(PRODUCT_CARD);
+  const count = await cards.count();
+  const names: string[] = [];
+
+  for (let i = 0; i < count; i++) {
+    const text = (await cards.nth(i).textContent()) ?? '';
+    const name = text.split(/\d{2,3}\.\d{3}/)[0].trim().substring(0, 80);
+    names.push(name);
+  }
+
+  return names;
+}
+
+export async function logFilterResults(page: Page, filters: string) {
+  const count = await getProductCount(page);
+  const names = await getProductNames(page);
+  const url = page.url();
+
+  console.log(`\n  🏷️  Filter: ${filters}`);
+  console.log(`  🔗 URL: ${url}`);
+  console.log(`  📦 Results: ${count} product(s)`);
+  if (names.length > 0) {
+    console.log(`  📋 Top products:`);
+    names.slice(0, 5).forEach((name, i) => {
+      console.log(`     ${i + 1}. ${name}`);
+    });
+  }
+}
+
 export async function expectProductsDifferent(
   page: Page,
   beforeTexts: string[],
 ): Promise<void> {
-  // Wait for products to update after filter
   await page.waitForTimeout(1000);
   const afterTexts = await getProductTexts(page);
   const hasDifference = afterTexts.some(
