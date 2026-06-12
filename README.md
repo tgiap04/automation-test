@@ -50,18 +50,57 @@ npx playwright test --reporter=html
 npx playwright show-report
 ```
 
+## Custom Test Data
+
+Tests read from environment variables — set your own data before running:
+
+```bash
+# Search keywords
+TEST_SEARCH_EXACT_1="macbook" \
+TEST_SEARCH_EXACT_2="dell" \
+TEST_SEARCH_CASE_UPPER="MACBOOK" \
+TEST_SEARCH_MULTI_WORD="macbook air" \
+TEST_SEARCH_FUZZY="laptop van phong" \
+npx playwright test
+
+# Or export once
+export TEST_SEARCH_EXACT_1="iphone"
+export TEST_FILTER_BRAND_1="apple"
+npx playwright test
+```
+
+### Full Variable Reference
+
+| Variable | Default | Description |
+|---|---|---|
+| `TEST_SEARCH_EXACT_1` | `macbook` | AC-1: keyword #1 |
+| `TEST_SEARCH_EXACT_2` | `dell` | AC-1: keyword #2 |
+| `TEST_SEARCH_CASE_UPPER` | `MACBOOK` | AC-2: uppercase |
+| `TEST_SEARCH_MULTI_WORD` | `macbook air` | AC-2: multi-word |
+| `TEST_SEARCH_FUZZY` | `laptop van phong` | AC-2: fuzzy/typo |
+| `TEST_FILTER_BRAND_1` | `apple` | AC-3/4: brand #1 |
+| `TEST_FILTER_BRAND_2` | `dell` | AC-3: brand #2 |
+| `TEST_FILTER_BRAND_SECOND` | `asus` | AC-4: second brand |
+| `TEST_FILTER_NHU_CAU_VP` | `van-phong` | AC-3: nhu-cau filter |
+| `TEST_FILTER_NHU_CAU_GAMING` | `gaming` | AC-4: gaming filter |
+| `TEST_FILTER_BRAND_HP` | `hp` | AC-4: toggle-off brand |
+| `TEST_CATEGORY_LAPTOP` | `/laptop` | Category path |
+
 ## Project Structure
 
 ```
 ├── playwright.config.ts
-├── helpers/
-│   ├── search-helper.ts       # Search page interactions
-│   └── filter-helper.ts       # Filter sidebar interactions
-├── tests/search/
-│   ├── ac1-exact-search.spec.ts   # AC-1: Exact keyword search
-│   ├── ac2-fuzzy-search.spec.ts   # AC-2: Fuzzy/typo search
-│   ├── ac3-filter.spec.ts         # AC-3: Multi-criteria filter
-│   └── ac4-ajax-url.spec.ts       # AC-4: Ajax real-time + URL sync
+├── tests/
+│   ├── config/
+│   │   └── test-data.ts          # Env-driven test data
+│   ├── helpers/
+│   │   ├── search-helper.ts       # Search page interactions
+│   │   └── filter-helper.ts       # Filter sidebar interactions
+│   └── search/
+│       ├── ac1-exact-search.spec.ts
+│       ├── ac2-fuzzy-search.spec.ts
+│       ├── ac3-filter.spec.ts
+│       └── ac4-ajax-url.spec.ts
 ```
 
 ## Test Coverage
@@ -69,10 +108,10 @@ npx playwright show-report
 | AC | Description | Tests |
 |----|-------------|-------|
 | AC-1 | Search exact keyword | 2 |
-| AC-2 | Fuzzy search (no-diacritics, typo, lowercase) | 4 |
+| AC-2 | Fuzzy/typo search (uppercase, multi-word, fuzzy) | 3 |
 | AC-3 | Multi-criteria filter + URL fragment | 3 |
 | AC-4 | Ajax no-reload + URL sync + toggle off | 3 |
-| **Total** | | **12** |
+| **Total** | | **11** |
 
 ## Conventions
 
@@ -106,6 +145,7 @@ await input.press('Enter');
 
 ### Search Behavior
 
-ThinkPro is a SPA — search doesn't navigate to a new URL. Results render inline on the same page (`/`). Our assertions check:
-- Product cards appear (`.t-product-card`)
-- At least one card text contains the search keyword
+ThinkPro navigates to `/tim-kiem?keyword=...` on search. Assertions check:
+- URL contains `/tim-kiem`
+- Body text contains `"X sản phẩm"` (result count indicator)
+- Body does NOT contain `"0 sản phẩm"` (no results)
